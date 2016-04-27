@@ -1,0 +1,172 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>设计模式 -- 观察者模式 | Zhang Wei 的博客</title>
+  <meta name="author" content="Zhang Wei">
+  
+  <meta name="description" content="在一个系统中，常常需要在某一对象的状态发生改变时，其他某些对象也能做出相应改变。观察者模式通常可以满足这一需求，在观察者模式中，多个观察者同时监听同一主题对象，当主题对象的状态发生改变时，会通知所有观察者对象，使他们能够自动更新自己。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="设计模式 -- 观察者模式"/>
+  <meta property="og:site_name" content="Zhang Wei 的博客"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Zhang Wei 的博客" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Zhang Wei 的博客</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-11-10T09:54:34.000Z"><a href="/2015/11/10/设计模式-观察者模式/">2015-11-10</a></time>
+      
+      
+  
+    <h1 class="title">设计模式 -- 观察者模式</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在一个系统中，常常需要在某一对象的状态发生改变时，其他某些对象也能做出相应改变。观察者模式通常可以满足这一需求，在观察者模式中，多个观察者同时监听同一主题对象，当主题对象的状态发生改变时，会通知所有观察者对象，使他们能够自动更新自己。</p>
+<a id="more"></a>
+<h2 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h2><h3 id="创建主题类"><a href="#创建主题类" class="headerlink" title="创建主题类"></a>创建主题类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">import com.google.common.collect.Lists;</span><br><span class="line"></span><br><span class="line">import java.util.List;</span><br><span class="line"></span><br><span class="line">public class Subject &#123;</span><br><span class="line">    private List&lt;Observer&gt; observerList = Lists.newArrayList();</span><br><span class="line">    private int state;</span><br><span class="line"></span><br><span class="line">    public int getState() &#123;</span><br><span class="line">        return state;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setState(int state) &#123;</span><br><span class="line">        this.state = state;</span><br><span class="line">        notifyAllObserver();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void attach(Observer observer) &#123;</span><br><span class="line">        observerList.add(observer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void notifyAllObserver() &#123;</span><br><span class="line">        observerList.forEach(Observer::update);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="创建观察者抽象类"><a href="#创建观察者抽象类" class="headerlink" title="创建观察者抽象类"></a>创建观察者抽象类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public abstract class Observer &#123;</span><br><span class="line">    protected Subject subject;</span><br><span class="line">    public abstract void update();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="创建观察者子类"><a href="#创建观察者子类" class="headerlink" title="创建观察者子类"></a>创建观察者子类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">public class BinaryObserver extends Observer &#123;</span><br><span class="line">    public BinaryObserver(Subject subject) &#123;</span><br><span class="line">        this.subject = subject;</span><br><span class="line">        this.subject.attach(this);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void update() &#123;</span><br><span class="line">        System.out.println(&quot;二进制：&quot; + Integer.toBinaryString(subject.getState()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public class HexaObserver extends Observer &#123;</span><br><span class="line">    public HexaObserver(Subject subject) &#123;</span><br><span class="line">        this.subject = subject;</span><br><span class="line">        this.subject.attach(this);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void update() &#123;</span><br><span class="line">        System.out.println(&quot;六进制：&quot; + Integer.toHexString(subject.getState()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public class OctalObserver extends Observer &#123;</span><br><span class="line">    public OctalObserver(Subject subject) &#123;</span><br><span class="line">        this.subject = subject;</span><br><span class="line">        this.subject.attach(this);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void update() &#123;</span><br><span class="line">        System.out.println(&quot;八进制：&quot; + Integer.toOctalString(subject.getState()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="TEST-amp-OUTPUT"><a href="#TEST-amp-OUTPUT" class="headerlink" title="TEST &amp; OUTPUT"></a>TEST &amp; OUTPUT</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">public class ObserverPatternTest &#123;</span><br><span class="line">    public static void main(String args[]) &#123;</span><br><span class="line">        Subject subject = new Subject();</span><br><span class="line">        new BinaryObserver(subject);</span><br><span class="line">        new HexaObserver(subject);</span><br><span class="line">        new OctalObserver(subject);</span><br><span class="line"></span><br><span class="line">        System.out.println(&quot;十进制: 10&quot;);</span><br><span class="line">        subject.setState(10);</span><br><span class="line"></span><br><span class="line">        System.out.println(&quot;......\n十进制: 15&quot;);</span><br><span class="line">        subject.setState(15);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">OUTPUT:</span><br><span class="line">十进制: 10</span><br><span class="line">二进制：1010</span><br><span class="line">六进制：a</span><br><span class="line">八进制：12</span><br><span class="line">......</span><br><span class="line">十进制: 15</span><br><span class="line">二进制：1111</span><br><span class="line">六进制：f</span><br><span class="line">八进制：17</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/设计模式/">设计模式</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+      <div id="fb-root"></div>
+<script>
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=123456789012345";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<div class="fb-comments" data-href="http://lzhangwei.github.io/2015/11/10/设计模式-观察者模式/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+      
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:lzhangwei.github.io">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/设计模式/">设计模式</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Zhang Wei
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
