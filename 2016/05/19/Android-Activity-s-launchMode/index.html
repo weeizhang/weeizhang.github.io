@@ -78,7 +78,7 @@
 </li>
 <li><p>总结：当点击Home键再返回App，Activity恢复会按照LAUNCHER Activity所在Task栈中的Activity顺序恢复</p>
 <ul>
-<li>当LAUNCHER Activity为singleInstance或singleTask的时候，只会恢复该LAUNCHER Activity，对于singleTask会将在其至少得所有Activity都pop出并destroy，而对于singleInstance栈中只会有它一个Activity;</li>
+<li>当LAUNCHER Activity为singleInstance或singleTask的时候，只会恢复该LAUNCHER Activity，对于singleTask会将在其上的所有Activity都pop出并destroy，而对于singleInstance栈中只会有它一个Activity;</li>
 <li>当LAUNCHER Activity为普通Activity的时候，Activity按栈顺序恢复</li>
 </ul>
 </li>
