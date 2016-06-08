@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Android Activity&#39;s launchMode | Zhang Wei 的博客</title>
+  <title>Activity &amp; Fragment - 生命周期和状态保存 | Zhang Wei 的博客</title>
   <meta name="author" content="Zhang Wei">
   
-  <meta name="description" content="Android Activity有四种launchMode分别是standard,singleTop,singleTask,singleInstance.">
+  <meta name="description" content="Activity’s Lifecycle">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="Android Activity&#39;s launchMode"/>
+  <meta property="og:title" content="Activity &amp; Fragment - 生命周期和状态保存"/>
   <meta property="og:site_name" content="Zhang Wei 的博客"/>
 
   
@@ -51,37 +51,68 @@
     <header>
       
         <div class="icon"></div>
-        <time datetime="2016-05-19T06:38:25.000Z"><a href="/2016/05/19/Android-Activity-s-launchMode/">2016-05-19</a></time>
+        <time datetime="2016-06-08T05:53:30.000Z"><a href="/2016/06/08/Activity-Fragment/">2016-06-08</a></time>
       
       
   
-    <h1 class="title">Android Activity&#39;s launchMode</h1>
+    <h1 class="title">Activity &amp; Fragment - 生命周期和状态保存</h1>
   
 
     </header>
     <div class="entry">
       
-        <p>Android Activity有四种launchMode分别是standard,singleTop,singleTask,singleInstance.</p>
-<a id="more"></a>
-<h2 id="standard"><a href="#standard" class="headerlink" title="standard"></a>standard</h2><p>默认Activity加载模式，当启动一个Activity就会重新创建这个Activity的实例（不管当前栈中有没有该Activity）并压入栈顶</p>
-<h2 id="singleTop"><a href="#singleTop" class="headerlink" title="singleTop"></a>singleTop</h2><p>当要创建的Activity在栈顶，则该Activity不会被创建，会调用栈顶Activity的onNewIntent()。因此在使用singleTop时需要在onCreate()和onNewIntent()中处理intent</p>
-<h2 id="singleTask"><a href="#singleTask" class="headerlink" title="singleTask"></a>singleTask</h2><p>在系统中一个Activity只能有一个实例，当要创建的Activity已经在栈中，则会pop出在它之上的Activity并detroy，然后调用onNewIntent();如果Activity不在栈中会创建新的压入栈顶</p>
-<h2 id="singleInstance"><a href="#singleInstance" class="headerlink" title="singleInstance"></a>singleInstance</h2><p>在系统中一个Activity只能有一个实例并且<strong>所在Task的栈中只能有该Activity</strong>,当要启动另一个Activity，则会<strong>创建一个新的Task将新Activity压入新Task的栈中</strong></p>
-<h2 id="点击Home键再返回App-Activity恢复问题"><a href="#点击Home键再返回App-Activity恢复问题" class="headerlink" title="点击Home键再返回App - Activity恢复问题"></a>点击Home键再返回App - Activity恢复问题</h2><ul>
-<li><p>当singleTask Activity为LAUNCHER，Activity恢复时会将singleTask Activity之上的Activity都pop出。比如，有两个Activity A和B，A为singleTask并且为LAUNCHER，App启动后从A进入B -&gt; 点击Home -&gt; 打开App -&gt; A恢复，B不可见</p>
-</li>
-<li><p>当singleTask Activity不为LAUNCHER，Activity恢复按照栈顺序恢复，比如，有三个Activity A,B,C,其中A为LAUNCHER，B为singleTask，App启动后从A进入B -&gt; B进入C -&gt; 点击Home -&gt; 打开App -&gt; C恢复</p>
-</li>
-<li><p>当singleInstance Activity为LAUNCHER，Activity恢复时只会恢复该singleInstance Activity</p>
-</li>
-<li><p>当singleInstance Activity不为LAUNCHER，Activity恢复会按照LAUNCHER Activity所在Task栈中的Activity顺序恢复。比如，A为LAUNCHER，B为singleInstance，C为standard，App启动 -&gt; A进入B -&gt; B进入C -&gt; 点击Home -&gt; 打开App -&gt; C恢复 -&gt; 点击back -&gt; A恢复 -&gt; 点击back -&gt; 退出App;App启动 -&gt; A进入B -&gt; 点击Home -&gt; 打开App -&gt; A恢复 - &gt; 点击back -&gt; 退出App</p>
-</li>
-<li><p>总结：当点击Home键再返回App，Activity恢复会按照LAUNCHER Activity所在Task栈中的Activity顺序恢复</p>
+        <h2 id="Activity’s-Lifecycle"><a href="#Activity’s-Lifecycle" class="headerlink" title="Activity’s Lifecycle"></a>Activity’s Lifecycle</h2><a id="more"></a>
+<p><img src="http://o783cv0kk.bkt.clouddn.com/activity_lifecycle.png" alt=""></p>
+<h2 id="Fragment’s-Lifecycle"><a href="#Fragment’s-Lifecycle" class="headerlink" title="Fragment’s Lifecycle"></a>Fragment’s Lifecycle</h2><p><img src="http://o783cv0kk.bkt.clouddn.com/fragment-lifecycle.png" alt=""></p>
+<h2 id="Saving-activity-state"><a href="#Saving-activity-state" class="headerlink" title="Saving activity state"></a>Saving activity state</h2><ul>
+<li><p>Activity save state - onSaveInstanceState(Bundle outState)</p>
 <ul>
-<li>当LAUNCHER Activity为singleInstance或singleTask的时候，只会恢复该LAUNCHER Activity，对于singleTask会将在其上的所有Activity都pop出并destroy，而对于singleInstance栈中只会有它一个Activity;</li>
-<li>当LAUNCHER Activity为普通Activity的时候，Activity按栈顺序恢复</li>
+<li>Activity的状态保存在onStop()之前,但可能在onPause()之前也可能之后</li>
 </ul>
 </li>
+<li><p>Activity restore state - onRestoreInstanceState(Bundle savedInstanceState)</p>
+<ul>
+<li><p>恢复在Activity-onSaveInstanceState时保存的状态</p>
+</li>
+<li><p>Activity的状态恢复发生在onStart和onPostCreate之间</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Saving-fragment-state"><a href="#Saving-fragment-state" class="headerlink" title="Saving fragment state"></a>Saving fragment state</h2><ul>
+<li><p>Fragment save state - onSaveInstanceState(Bundle outState)</p>
+<ul>
+<li><p>保存Fragment的状态，当重新创建该Fragment的实例时，恢复之前保存的状态。保存的状态(Bundle)将被传给Fragment的onCreate(Bundle)},onCreateView(LayoutInflater, ViewGroup, Bundle), and onActivityCreated(Bundle)</p>
+</li>
+<li><p><strong>Fragment在onSaveInstanceState之后，只有当Fragment的实例改变时，save的状态才能被恢复</strong></p>
+</li>
+<li><p>当Activity执行onSaveInstanceState(Bundle)时,该Activity的所有Fragment也会去保存状态</p>
+</li>
+<li><p>onSaveInstanceState方法可能会在onDestroy()之前的任何时刻被调到</p>
+</li>
+<li><p>在某些情况下Fragment的状态不会被保存直到它的Activity保存状态时,比如Fragment不可见了并且被放进了back stack中</p>
+</li>
+</ul>
+</li>
+<li><p>Fragment restore state - onViewStateRestored(@Nullable Bundle savedInstanceState)</p>
+<ul>
+<li><p>恢复Fragment已保存的状态</p>
+</li>
+<li><p>onViewStateRestored在onViewCreated()之前</p>
+</li>
+<li><p>onViewStateRestored在onActivityCreated(Bundle)之后,在onStart()之前</p>
+</li>
+</ul>
+</li>
+<li><p>FragmentTransaction - commit()</p>
+<ul>
+<li>由于commit()之后Fragment保存的状态就会丢掉，所以commit操作不能在save state后做。</li>
+</ul>
+</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.android.com/guide/components/activities.html" target="_blank" rel="external">Activity</a></li>
+<li><a href="https://developer.android.com/guide/components/fragments.html" target="_blank" rel="external">Fragment</a></li>
 </ul>
 
       
@@ -135,7 +166,7 @@
   }(document, 'script', 'facebook-jssdk'));
 </script>
 
-<div class="fb-comments" data-href="http://lzhangwei.github.io/2016/05/19/Android-Activity-s-launchMode/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
+<div class="fb-comments" data-href="http://lzhangwei.github.io/2016/06/08/Activity-Fragment/index.html" data-num-posts="5" data-width="840" data-colorscheme="light"></div>
       
   
 </section>
