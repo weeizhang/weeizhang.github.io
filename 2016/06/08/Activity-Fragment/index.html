@@ -68,6 +68,7 @@
 <li><p>Activity save state - onSaveInstanceState(Bundle outState)</p>
 <ul>
 <li>Activity的状态保存在onStop()之前,但可能在onPause()之前也可能之后</li>
+<li>实例: 有两个Activity A和B,当从A跳到B时,A会保存自己的状态;当B返回A时,B不会保存自己的状态;但当在B中按Home键,B会保存自己的状态.</li>
 </ul>
 </li>
 <li><p>Activity restore state - onRestoreInstanceState(Bundle savedInstanceState)</p>
@@ -98,7 +99,7 @@
 <ul>
 <li><p>恢复Fragment已保存的状态</p>
 </li>
-<li><p>onViewStateRestored在onViewCreated()之前</p>
+<li><p>onViewCreated() called before any saved state has been restored in to the view</p>
 </li>
 <li><p>onViewStateRestored在onActivityCreated(Bundle)之后,在onStart()之前</p>
 </li>
@@ -107,6 +108,15 @@
 <li><p>FragmentTransaction - commit()</p>
 <ul>
 <li>由于commit()之后Fragment保存的状态就会丢掉，所以commit操作不能在save state后做。</li>
+</ul>
+</li>
+</ul>
+<h2 id="实例分析"><a href="#实例分析" class="headerlink" title="实例分析"></a>实例分析</h2><ul>
+<li>关于Fragment中WebView状态保存和恢复<ul>
+<li><strong>现象:</strong> 在一个Fragment(A)中有一个WebView,在WebView中可以通过某些链接跳到另一个Fragment(B)中,这样再从B返回A,A中WebView的状态将会丢失它会重新加载WebView使回到初始状态.</li>
+<li><strong>原因:</strong> 当从A跳到B时,A只是销毁了view并没有destroy,所以并没有保存状态,自然WebView的状态也就丢失了.<br>那么如果我手动的调用一次onSaveInstanceState然后再让Fragment去恢复状态这样是否可行?答案是不可行,因为Fragment在onSaveInstanceState之后,只有当Fragment的实例改变时,save的状态才能被恢复,在这里显然A Fragment的实例并没有被销毁,所以自然状态无法恢复.</li>
+<li><strong>一种解决方案:</strong> 在Fragment onPause时保存WebView的状态,在创建View的时候恢复状态</li>
+<li><a href="https://github.com/lzhangwei/android-test-demo/tree/v2.0" target="_blank" rel="external">Demo</a>: 当在Fragment ONE中点击文章最后参考中的Activity链接,再点击Activity页面的Activity链接,这样会进入Fragment TWO.当没有自己保存web view的状态时,点击返回键将回到Fragment one的初始页面即博客页面,要想回到Fragment one掉转之前的状态就需要自己去保存并恢复.</li>
 </ul>
 </li>
 </ul>
