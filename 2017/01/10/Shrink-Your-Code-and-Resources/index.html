@@ -1,0 +1,288 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Shrink Your Code and Resources | Zhang Wei 的博客</title>
+  <meta name="author" content="Zhang Wei">
+  
+  <meta name="description" content="原文链接
+为了使你的APK文件尽可能小，你应该启用压缩代码为你的发布版本移除不用的代码和资源。本文介绍如何做压缩，以及如何在构建时指定要保留或舍弃的代码和资源。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Shrink Your Code and Resources"/>
+  <meta property="og:site_name" content="Zhang Wei 的博客"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Zhang Wei 的博客" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Zhang Wei 的博客</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2017-01-10T02:03:33.000Z"><a href="/2017/01/10/Shrink-Your-Code-and-Resources/">2017-01-10</a></time>
+      
+      
+  
+    <h1 class="title">Shrink Your Code and Resources</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><a href="https://developer.android.com/studio/build/shrink-code.html" target="_blank" rel="external">原文链接</a></p>
+<p>为了使你的APK文件尽可能小，你应该启用压缩代码为你的发布版本移除不用的代码和资源。本文介绍如何做压缩，以及如何在构建时指定要保留或舍弃的代码和资源。</p>
+<a id="more"></a>
+<p>代码压缩通过ProGuard提供，ProGuard会检测和移除你的应用程序包中的无用类、字段、方法和属性，包括引入的代码库中的未使用项（这使其成为解决<a href="https://developer.android.com/studio/build/multidex.html" target="_blank" rel="external">64k引用限制</a>的有用工具）。ProGuard也会优化字节码，移除无用的代码指令，并且使用短命混淆类、字段和方法名。混淆后的代码是你的APK很难被逆向，这在应用使用<a href="https://developer.android.com/google/play/licensing/overview.html" target="_blank" rel="external">许可验证</a>等安全敏感性问题时特别有用。</p>
+<p>资源压缩通过Android plugin for Gradle实现，它会从你的APK中移除无用的资源，包括代码库中无用的资源。它可与代码压缩协同工作，使得在移除未使用的代码后，任何不再被引用的资源也能安全地移除。</p>
+<p>本文介绍的功能依赖以下组件：</p>
+<ul>
+<li><a href="https://developer.android.com/studio/releases/sdk-tools.html" target="_blank" rel="external">SDK Tools</a> 25.0.10或更高</li>
+<li><a href="https://developer.android.com/studio/releases/gradle-plugin.html" target="_blank" rel="external">Android plugin for Gradle</a> 2.0.0或更高</li>
+</ul>
+<h2 id="压缩代码"><a href="#压缩代码" class="headerlink" title="压缩代码"></a>压缩代码</h2><p>启用ProGuard的代码压缩，需要在build.gradle文件中将相应的构建类型的属性<code>minifyEnabled</code>设置为<code>true</code>。</p>
+<p>请注意，代码压缩会是构建时间变慢，因此你应该避免在debug模式下使用。但是，测试启用了代码压缩的最终APK很重要，因为代码压缩可能会因为没有充分的<a href="https://developer.android.com/studio/build/shrink-code.html#keep-code" target="_blank" rel="external">自定义要保留的代码</a>而导致一些错误。</p>
+<p>比如，下面build.gradle文件的代码段在发行版本启用了代码压缩：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        release &#123;</span><br><span class="line">            minifyEnabled true</span><br><span class="line">            proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;),</span><br><span class="line">                    &apos;proguard-rules.pro&apos;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>注意：</strong> Android Studio在使用Instant Run时禁用了ProGuard。如果在增量构建中需要代码压缩，可以尝试Gradle shrinker。</p>
+</blockquote>
+<p>除了<code>minifyEnabled</code>属性外，还有用于定义ProGuard规则的<code>proguardFiles</code>属性：</p>
+<ul>
+<li><p><code>getDefaultProguardFile(‘proguard-android.txt&#39;)</code>方法可从Android SDK的<code>tools/proguard/</code>文件夹中获取默认ProGuard设置。</p>
+<p>  <strong>提示：</strong>要想做进一步的代码压缩，可尝试使用在同一文件夹下的<code>proguard-android-optimize.txt</code>文件。它使用相同的ProGuard规则，但还包括其他在字节码级别（方法内和方法间）执行分析的优化，以进一步减小APK大小和帮助其提高运行速度。</p>
+</li>
+<li><p>可以在<code>proguard-rules.pro</code>文件中添加自定义的ProGuard规则。在默认情况下，这个文件在module的根目录中（<code>build.gradle</code>文件的下面）。</p>
+</li>
+</ul>
+<p>如果要为不同构建变种版本添加特定的ProGuard规则，就需要在productFlavor块中添加相应的proguardFiles属性。比如，在下面的Gradle文件中为flavor2版本添加了<code>flavor2-rules.pro</code>文件。现在flavor2就使用了所有3个ProGuard规则，因为还应用了来自release版本块的规则。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    ...</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        release &#123;</span><br><span class="line">            minifyEnabled true</span><br><span class="line">            proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;),</span><br><span class="line">                   &apos;proguard-rules.pro&apos;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    productFlavors &#123;</span><br><span class="line">        flavor1 &#123;</span><br><span class="line">        &#125;</span><br><span class="line">        flavor2 &#123;</span><br><span class="line">            proguardFile &apos;flavor2-rules.pro&apos;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于每一次构建，ProGuard输出以下文件：</p>
+<ul>
+<li><p><code>dump.txt</code></p>
+<p>  说明APK中所有类文件的内部结构。</p>
+</li>
+<li><p><code>mapping.txt</code></p>
+<p>  提供原始与混淆过的类、方法和字段名称之间的映射。</p>
+</li>
+<li><p><code>seeds.txt</code></p>
+<p>  列出没有混淆的类和成员。</p>
+</li>
+<li><p><code>usage.txt</code></p>
+<p>  列出从APK移除的代码。</p>
+</li>
+</ul>
+<p>这些文件保存在<code>&lt;module-name&gt;/build/outputs/mapping/release/</code>。</p>
+<h4 id="自定义要保留的代码"><a href="#自定义要保留的代码" class="headerlink" title="自定义要保留的代码"></a>自定义要保留的代码</h4><p>对于一些情形，默认的ProGuard配置文件（proguard-android.txt）可以满足需求，ProGuard会移除所有未使用的代码。但是，有些情形ProGuard可能会移除一些应用程序需要的代码。可能错误移除的情形如下：</p>
+<ul>
+<li>当一个类只在<code>AndroidManifest.xml</code>文件中被引用时</li>
+<li>当应用程序调用Java Native Interface(JNI)的方法时</li>
+<li>当在运行时调用代码时（例如使用反射或自检）</li>
+</ul>
+<p>测试应用可以发现由于不正当的移除而导致的错误，你也可以检查<code>&lt;module-name&gt;/build/outputs/mapping/release/</code>下的<code>usage.txt</code>输出文件，查看你移除的代码。</p>
+<p>要修正错误并强制ProGuard保留特定代码，请在ProGuard配置文件中添加一行<code>-keep</code>代码。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-keep public class MyClass</span><br></pre></td></tr></table></figure>
+<p>或者可以在要保留的代码上添加<code>@Keep</code>注解。如果在一个类上添加<code>@Keep</code>会保留整个类。在方法或字段上添加它可保留方法/字段（及其名称）以及类名称。注意，只有在使用注解支持库时，才能使用此注解。</p>
+<p>在使用<code>-keep</code>选项时，有许多事项需要考虑；如需了解有关自定义配置文件的详细信息，请阅读<a href="https://stuff.mit.edu/afs/sipb/project/android/sdk/android-sdk-linux/tools/proguard/docs/index.html#manual/introduction.html" target="_blank" rel="external">ProGuard手册</a>。<a href="https://stuff.mit.edu/afs/sipb/project/android/sdk/android-sdk-linux/tools/proguard/docs/index.html#manual/troubleshooting.html" target="_blank" rel="external">问题排查</a>一章概述了你可能会在混淆代码时遇到的其他常见问题。</p>
+<h4 id="解码混淆过的堆栈记录"><a href="#解码混淆过的堆栈记录" class="headerlink" title="解码混淆过的堆栈记录"></a>解码混淆过的堆栈记录</h4><p>ProGuard压缩后的代码，由于方法名被混淆阅读堆栈追踪很困难。幸运的是，ProGuard每次运行会创建一个<code>mapping.txt</code>文件，这个文件中有原始类、方法、字段的名字和混淆后的名字的映射。ProGuard将这个文件保存在<code>&lt;module-name&gt;/build/outputs/mapping/release/</code>目录下。</p>
+<p>注意在每次构建一个发布版本时，<code>mapping.txt</code>文件会被覆盖，因此你每次发布新版本是都要保存一个副本。通过为每个发布构建保留一个<code>mapping.txt</code>文件副本，你就可以根据用户提交的已混淆的堆栈追踪来针对旧版本应用的问题进行调试。</p>
+<p>在Google Play上发布应用时，你可以针对每个版本APK上传<code>mapping.txt</code>文件。Google Play会根据用户报告的问题对收到的堆栈追踪进行去混淆处理，以便你在Google Play Developer Console中进行查看。</p>
+<p>To convert an obfuscated stack trace to a readable one yourself, use the retrace script (retrace.bat on Windows; retrace.sh on Mac/Linux). It is located in the <sdk-root>/tools/proguard/ directory. The script takes the mapping.txt file and your stack trace, producing a new, readable stack trace. The syntax for using the retrace tool is:</sdk-root></p>
+<p>要自行将混淆过的堆叠追踪转换成可读的堆叠追踪，请使用<code>retrace</code>脚本（Windows上为<code>retrace.bat</code>；在Mac/Linux 上为<code>retrace.sh</code>）。它在<code>&lt;sdk-root&gt;/tools/proguard/</code>目录中。该脚本利用<code>mapping.txt</code>文件和你的堆栈追踪生成新的可读堆栈追踪。使用<code>retrace</code>工具的语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">retrace.bat|retrace.sh [-verbose] mapping.txt [&lt;stacktrace_file&gt;]</span><br></pre></td></tr></table></figure>
+<p>比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">retrace.bat -verbose mapping.txt obfuscated_trace.txt</span><br></pre></td></tr></table></figure>
+<p>如果你不指定堆栈追踪文件，<code>retrace</code>工具会从标准输入读取。</p>
+<h4 id="在Instant-Run中启用代码压缩"><a href="#在Instant-Run中启用代码压缩" class="headerlink" title="在Instant Run中启用代码压缩"></a>在Instant Run中启用代码压缩</h4><p>如果在增量开发中代码压缩对你来说很重要，可以使用目前处于实验阶段的Gradle的Android插件shrinker。这个插件和ProGuard不一样，它可以支持Instant Run。</p>
+<p>在配置Android插件shrinker时，可以和ProGuard使用相同的配置文件。但是，Android插件shrinker不能混淆和优化你的代码，它只能移除未使用的代码。因此你应该只在调试中使用它，在发布版本中启用ProGuard去混淆和优化代码。</p>
+<p>To enable the Android plugin shrinker, simply set useProguard to false in your “debug” build type (and keep minifyEnabled set true):</p>
+<p>使用Android插件shrinker，只需要在<code>build type</code>中设置<code>userProguard</code>属性为<code>false</code>，并且将<code>minifyEnabled</code>设为<code>true</code>，如下：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        debug &#123;</span><br><span class="line">            minifyEnabled true</span><br><span class="line">            useProguard false</span><br><span class="line">            proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;),</span><br><span class="line">                    &apos;proguard-rules.pro&apos;</span><br><span class="line">        &#125;</span><br><span class="line">        release &#123;</span><br><span class="line">            minifyEnabled true</span><br><span class="line">            proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;),</span><br><span class="line">                    &apos;proguard-rules.pro&apos;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>注意：</strong> 如果Android插件shrinker先移除了一个方法，接着你又使用了这个方法，Instant Run会将这种情形作为代码结构更改而执行<code>cold swap</code>。</p>
+</blockquote>
+<h2 id="压缩资源"><a href="#压缩资源" class="headerlink" title="压缩资源"></a>压缩资源</h2><p>资源压缩只与代码压缩协同工作。代码压缩器移除完所有的未使用的代码后，资源压缩器就可以确定应用仍然使用的资源。这在添加包含资源的代码库时体现得尤为明显——你必须移除未使用的代码库代码，使代码库资源变为未引用资源，才能通过资源压缩器将它们移除。</p>
+<p>在build.gradle文件中设置<code>shrinkResources</code>属性为<code>true</code>可以启用资源压缩（在用于代码压缩的<code>minifyEnabled</code>属性旁边）。比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    ...</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        release &#123;</span><br><span class="line">            shrinkResources true</span><br><span class="line">            minifyEnabled true</span><br><span class="line">            proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;),</span><br><span class="line">                    &apos;proguard-rules.pro&apos;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果你在构建应用时，没有使用<code>minifyEnabled</code>做代码压缩，请先使用它，然后再启用资源压缩，因为你可能需要编辑<code>proguard-rules.pro</code>文件以保留动态创建或调用的类或方法，然后再移除资源。</p>
+<blockquote>
+<p><strong>注意：</strong> 资源压缩器目前不会移除<code>values/</code>文件夹中定义的资源（例如字符串、尺寸、样式和颜色）。这是因为Android资源打包工具(AAPT)不允许Gradle插件为资源指定预定义版本。有关详情，请参阅问题<a href="https://code.google.com/p/android/issues/detail?id=70869" target="_blank" rel="external">70869</a>。?</p>
+</blockquote>
+<h4 id="自定义要保留的资源"><a href="#自定义要保留的资源" class="headerlink" title="自定义要保留的资源"></a>自定义要保留的资源</h4><p>如果你有明确想要保留或舍弃的资源，请在你的项目中创建一个包含<code>&lt;resources&gt;</code>标记的XML文件，并在<code>tools:keep</code>属性中指定每个要保留的资源，在<code>tools:discard</code>属性中指定每个要舍弃的资源。这两个属性都接受逗号分隔的资源名称列表。你可以使用星号字符作为通配符。比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="line">&lt;resources xmlns:tools=&quot;http://schemas.android.com/tools&quot;</span><br><span class="line">    tools:keep=&quot;@layout/l_used*_c,@layout/l_used_a,@layout/l_used_b*&quot;</span><br><span class="line">    tools:discard=&quot;@layout/unused2&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<p>将这个文件保存在你的项目资源中，比如，在<code>res/raw/keep.xml</code>。构建不会将该文件打包到APK之中。</p>
+<p>指定要舍弃的资源可能看似愚蠢，因为你本可将它们删除，但在使用构建变体时，这样做可能很有用。例如，如果你明知给定资源表面上会在代码中使用（并因此不会被压缩器移除），但实际不会用于给定构建变体，就可以将所有资源放入同一项目目录，然后为每个构建变体创建一个不同的<code>keep.xml</code>文件。构建工具也可能会错误地将资源标识为需要的资源，因为编译器会在内联中添加资源ID，然后资源分析器可能不知道具有相同的值的真正引用的资源与代码中的整数值之间的差异。</p>
+<h4 id="启用严格引用检查"><a href="#启用严格引用检查" class="headerlink" title="启用严格引用检查"></a>启用严格引用检查</h4><p>通常，资源压缩器可以准确的决定一个资源是否被使用。但是，如果你的代码调用了<code>Resources.getIdentifier()</code>（或任何库进行了这一调用——AppCompat库会执行该调用），这说明你的代码是根据动态生成的字符串查询资源名称。当执行这一调用时，默认情况下资源压缩器会采取防御性行为，将所有具有匹配名称格式的资源标记为可能已使用，无法移除。</p>
+<p>比如，下面的代码会将所有带有<code>img_</code>前缀的的资源标记为已使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String name = String.format(&quot;img_%1d&quot;, angle + 1);</span><br><span class="line">res = getResources().getIdentifier(name, &quot;drawable&quot;, getPackageName());</span><br></pre></td></tr></table></figure>
+<p>资源压缩器会浏览你代码中的字符串常量，大量的<code>res/raw/</code>资源，寻找像这种格式的URL资源<code>file:///android_res/drawable//ic_plus_anim_016.png</code>。如果它找到与其类似的字符串，或找到其他看似可用来构建与其类似的网址的字符串，则不会将它们移除。</p>
+<p>这些情况是安全的压缩模式，默认情况下被启用。但你可以停用这一“有备无患”处理方式，并指定资源压缩器只保留其确定已使用的资源。要执行此操作，请在<code>keep.xml</code>中将<code>shrinkMode</code>设置为<code>strict</code>，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="line">&lt;resources xmlns:tools=&quot;http://schemas.android.com/tools&quot;</span><br><span class="line">    tools:shrinkMode=&quot;strict&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<p>如果你启用了严格压缩模式，并且代码也引用了包含动态生成字符串的资源（如上所示），你就必须利用<code>tools:keep</code>属性手动保留这些资源。</p>
+<h4 id="移除未使用的备用资源"><a href="#移除未使用的备用资源" class="headerlink" title="移除未使用的备用资源"></a>移除未使用的备用资源</h4><p>Gradle的资源压缩器只会移除代码中未使用的资源，它不会移除适配于不同设备上的备用资源。如果你需要移除这些资源，你可以通过配置Android Gradle插件的<code>resConfigs</code>属性来移除你的App不需要的备用资源。</p>
+<p>比如，你使用了一个包含语言资源的库（像AppCompat或Google Play Services），则APK将包括这些内容库中字符串的所有已翻译语言字符串，无论应用的其余部分是否翻译为同一语言。如果您想只保留应用正式支持的语言，可以利用<code>resConfig</code>属性指定这些语言。系统会移除未指定语言的所有资源。</p>
+<p>下面这段代码展示了如何将语言资源限定为仅支持英语和法语：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        ...</span><br><span class="line">        resConfigs &quot;en&quot;, &quot;fr&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同理，您也可以利用<a href="https://developer.android.com/studio/build/configure-apk-splits.html" target="_blank" rel="external">构建多APK</a>为不同设备构建不同的APK，自定义在APK中包括的屏幕密度或ABI资源。</p>
+<h4 id="合并重复资源"><a href="#合并重复资源" class="headerlink" title="合并重复资源"></a>合并重复资源</h4><p>默认情况下，Gradle还会合并同名资源，例如可能位于不同资源文件夹中的同名可绘制对象。这一行为不受<code>shrinkResources</code>属性控制，也无法停用，因为在有多个资源匹配代码查询的名称时，有必要利用这一行为来避免错误。</p>
+<p>只有在两个或更多个文件中具有完全相同的资源名称、类型和限定符时，才会进行资源合并。Gradle会在重复项中选择其为最佳选择文件（根据下述优先顺序），并只将这一个资源传递给AAPT，以供在APK文件中分发。</p>
+<p>Gradle会在下列位置寻找重复资源：</p>
+<ul>
+<li>与主资源集关联的主资源，一般位于<code>src/main/res/</code>。</li>
+<li>变体叠加，来自构建类型和构建flavor。</li>
+<li>项目依赖库。</li>
+</ul>
+<p>Gradle会按以下优先顺序合并重复资源：</p>
+<p>依赖项 → 主资源 → 构建flavor → 构建类型</p>
+<p>例如，如果某个重复资源同时出现在主资源和构建flavor中，Gradle会选择构建flavor中的重复资源。</p>
+<p>如果完全相同的资源出现在同一资源集中，Gradle无法合并它们，并且会发出资源合并错误。如果您在<code>build.gradle</code>文件的<code>sourceSet</code>属性中定义了多个资源集，在特定情况下（例如<code>src/main/res/</code>和<code>src/main/res2/</code>包含完全相同的资源时），就可能发生这种情况。</p>
+<h4 id="排查资源压缩问题"><a href="#排查资源压缩问题" class="headerlink" title="排查资源压缩问题"></a>排查资源压缩问题</h4><p>当压缩资源时，Gradle Console会显示它从应用软件包中移除的资源的摘要。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">:android:shrinkDebugResources</span><br><span class="line">Removed unused resources: Binary resource data reduced from 2570KB to 1711KB: Removed 33%</span><br><span class="line">:android:validateDebugSigning</span><br></pre></td></tr></table></figure>
+<p>Gradle还会在<code>&lt;module-name&gt;/build/outputs/mapping/release/</code>（ProGuard 输出文件所在的文件夹）中创建一个名为<code>resources.txt</code>的诊断文件。该文件包括诸如哪些资源引用了其他资源以及使用或移除了哪些资源等详情。</p>
+<p>例如，要了解APK为何仍包含<code>@drawable/ic_plus_anim_016</code>，请打开<code>resources.txt</code>文件并搜索该文件名。你可能会发现，有其他资源引用了它，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">16:25:48.005 [QUIET] [system.out] @drawable/add_schedule_fab_icon_anim : reachable=true</span><br><span class="line">16:25:48.009 [QUIET] [system.out]     @drawable/ic_plus_anim_016</span><br></pre></td></tr></table></figure>
+<p>现在你需要了解为何<code>@drawable/add_schedule_fab_icon_anim</code>可以访问——如果你向上搜索，就会发现在“The root reachable resources are:”之下列有该资源。这意味着存在对<code>add_schedule_fab_icon_anim</code>的代码引用（即在可访问代码中找到了其R.drawable的ID）。</p>
+<p>如果你使用的不是严格检查，则存在看似可用于为动态加载资源而构建的资源名称的字符串常量时，可将资源ID标记为可访问。在这种情况下，如果你在构建输出中搜索资源名称，可能会找到类似下面这样的消息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">10:32:50.590 [QUIET] [system.out] Marking drawable:ic_plus_anim_016:2130837506</span><br><span class="line">    used because it format-string matches string pool constant ic_plus_anim_%1$d.</span><br></pre></td></tr></table></figure>
+<p>如果你看到一个这样的字符串，并且你能确定该字符串未用于动态加载给定资源，就可以按照有关如何自定义要保留的资源部分中所述利用<code>tools:discard</code>属性通知构建系统将它移除。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/翻译/">翻译</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+    <div id="ds-thread" class="ds-thread" data-thread-key="2017/01/10/Shrink-Your-Code-and-Resources/" data-title="Shrink Your Code and Resources" data-url="http://lzhangwei.github.io/2017/01/10/Shrink-Your-Code-and-Resources/"></div>
+
+    <script type="text/javascript">
+    var duoshuoQuery = {short_name:"zhangweei-blog"};
+    	(function() {
+    		var ds = document.createElement('script');
+    		ds.type = 'text/javascript';ds.async = true;
+    		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    		ds.charset = 'UTF-8';
+    		(document.getElementsByTagName('head')[0]
+    		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+    	})();
+    	</script>
+</section>
+
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:lzhangwei.github.io">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/Android/">Android</a><small>2</small></li>
+  
+    <li><a href="/tags/Database/">Database</a><small>1</small></li>
+  
+    <li><a href="/tags/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/tags/翻译/">翻译</a><small>4</small></li>
+  
+    <li><a href="/tags/设计模式/">设计模式</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 Zhang Wei
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>ART and Dalvik | Zhang Wei 的博客</title>
+  <meta name="author" content="Zhang Wei">
+  
+  <meta name="description" content="原文链接
+ART(Android runtime)用于托管Android应用程序和一些系统服务的运行时。ART和其前身Dalvik是专门为Android项目创建的。ART作为运行时可执行Dalvik可执行格式和Dex字节码规范。
+ART和Dalvik在运行Dex字节码时可兼容，因此为Dalvik开发的App在ART下应该可以工作。但是，一些技术在Dalvik下可工作，但在ART下无法工作。关于这个问题的信息可以查看Verifying App Behavior on the Android Runtime (ART)。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="ART and Dalvik"/>
+  <meta property="og:site_name" content="Zhang Wei 的博客"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Zhang Wei 的博客" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Zhang Wei 的博客</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2017-01-09T05:52:27.000Z"><a href="/2017/01/09/ART-and-Dalvik/">2017-01-09</a></time>
+      
+      
+  
+    <h1 class="title">ART and Dalvik</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><a href="https://source.android.com/devices/tech/dalvik/" target="_blank" rel="external">原文链接</a></p>
+<p>ART(Android runtime)用于托管Android应用程序和一些系统服务的运行时。ART和其前身Dalvik是专门为Android项目创建的。ART作为运行时可执行Dalvik可执行格式和Dex字节码规范。</p>
+<p>ART和Dalvik在运行Dex字节码时可兼容，因此为Dalvik开发的App在ART下应该可以工作。但是，一些技术在Dalvik下可工作，但在ART下无法工作。关于这个问题的信息可以查看<a href="https://developer.android.com/guide/practices/verifying-apps-art.html" target="_blank" rel="external">Verifying App Behavior on the Android Runtime (ART)</a>。</p>
+<a id="more"></a>
+<h2 id="ART特性"><a href="#ART特性" class="headerlink" title="ART特性"></a>ART特性</h2><p>下面是一些ART的主要特性。</p>
+<h4 id="预编译-AOT"><a href="#预编译-AOT" class="headerlink" title="预编译(AOT)"></a>预编译(AOT)</h4><p>ART使用预编译可以提升App性能。ART还具有比Dalvik更严格的安装时间验证。</p>
+<p>在安装时，ART会使用设备上的dex2oat工具编译应用。此工具可以将DEX文件作为输入，生成一个在目标设备上已编译好的应用程序可执行文件。此工具应该可以编译所有有效的DEX文件。但是，一些后处理工具会生成可以在Dalvik上运行但不能在ART上运行的无效文件。更多的信息可以查看<a href="https://developer.android.com/guide/practices/verifying-apps-art.html#GC_Migration" target="_blank" rel="external">解决GC问题</a>。</p>
+<h4 id="优化GC"><a href="#优化GC" class="headerlink" title="优化GC"></a>优化GC</h4><p>垃圾回收(GC)可能会损害App的性能，导致显示不稳定、UI响应性能差等问题。ART通过下面这几种方式优化GC:</p>
+<ul>
+<li>一次GC暂停而不是两次（Dalvik的GC分为两个阶段：暂停所有线程分析堆使用情况；暂停所有线程清理堆。而ART在便利阶段不需暂停，因此只需要一次暂停并且垃圾回收时间也大大缩短）</li>
+<li>在GC暂停期间做并行处理</li>
+<li>对于最近分配以及短暂对象的特殊情况的清理时间更短</li>
+<li>改进GC机制，使并发GC更及时，这使得GC_FOR_ALLOC在典型的情况下很少发生</li>
+<li>紧凑型GC可以减少后台内存使用和碎片</li>
+</ul>
+<h4 id="开发和调试的改进"><a href="#开发和调试的改进" class="headerlink" title="开发和调试的改进"></a>开发和调试的改进</h4><p>ART提供了一些特性去改善开发和调试：</p>
+<h5 id="支持采样分析器"><a href="#支持采样分析器" class="headerlink" title="支持采样分析器"></a>支持采样分析器</h5><p>以前，开发者使用Traceview工具（用于跟踪应用程序执行）作为分析器。Traceview提高了一些有用的信息，在Dalvik上它的结果被方法调用开销曲解，并且使用这个工具会很明显的影响运行时间性能。</p>
+<p>ART增加了一个专门的采样分析器，它没有这些限制。它提供了更准确的应用程序执行视图，并且不会很明显的影响运行速度。在KitKat版本中，Dalvik的Traceview中添加了抽样的支持。</p>
+<h5 id="支持更多的调试特性"><a href="#支持更多的调试特性" class="headerlink" title="支持更多的调试特性"></a>支持更多的调试特性</h5><p>ART支持一些新的调试选项，特别是在monitor和GC相关功能中。比如，你可以：</p>
+<ul>
+<li>查看哪些锁在堆栈中被持有，然后跳到持有该锁的线程。</li>
+<li>查看一个类中有多少存活的实例，查看实例，查看保存对象的引用。</li>
+<li>过滤一个特定实例的事件（比如断点）。</li>
+<li>查看方法退出时返回的值（使用<code>method-exit</code>事件）。</li>
+<li>设置字段断点以在访问、修改特定字段时暂停程序的执行。</li>
+</ul>
+<h5 id="改进了异常和崩溃报告中的诊断信息"><a href="#改进了异常和崩溃报告中的诊断信息" class="headerlink" title="改进了异常和崩溃报告中的诊断信息"></a>改进了异常和崩溃报告中的诊断信息</h5><p>当运行时异常发生时，ART给你提供了尽可能多的上下文和详细信息。ART对于<code>java.lang.ClassNotFoundException</code>和<code>java.lang.NullPointerException</code>提供了扩展的异常详细信息。（Dalvik的后续版本对<code>java.lang.ArrayIndexOutOfBoundsException</code>和<code>java.lang.ArrayStoreException</code>提供了扩展的异常详细信息，包括数组的大小和边界偏移，ART也是这样。）</p>
+<p>例如，<code>java.lang.NullPointerException</code>现在显示有关应用程序尝试使用空指针（如应用程序尝试写入的字段）或其尝试调用的方法的信息。 这里有一些典型的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NullPointerException: Attempt to write to field &apos;int</span><br><span class="line">android.accessibilityservice.AccessibilityServiceInfo.flags&apos; on a null object</span><br><span class="line">reference</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NullPointerException: Attempt to invoke virtual method</span><br><span class="line">&apos;java.lang.String java.lang.Object.toString()&apos; on a null object reference</span><br></pre></td></tr></table></figure>
+<p>ART在App本地崩溃报告中也提供了改进的Context信息，包括了Java和本地堆栈信息。</p>
+<h2 id="报告问题"><a href="#报告问题" class="headerlink" title="报告问题"></a>报告问题</h2><p>如果你遇到的问题不是APP JNI问题，请通过<a href="https://code.google.com/p/android/issues/list" target="_blank" rel="external">Android开源项目问题跟踪工具</a>报告问题。在Google Play商店中添加<code>adb bugreport</code>和指向该应用的链接（如果有）。否则，如果可能，请附加重现此问题的APK。请注意，问题（包括附件）会公开显示。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/翻译/">翻译</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+      <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+    
+    
+      <a class="addthis_button_tweet"></a>
+    
+    
+      <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    
+    
+      <a class="addthis_button_pinterest_pinit" pi:pinit:layout="horizontal"></a>
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+    <div id="ds-thread" class="ds-thread" data-thread-key="2017/01/09/ART-and-Dalvik/" data-title="ART and Dalvik" data-url="http://lzhangwei.github.io/2017/01/09/ART-and-Dalvik/"></div>
+
+    <script type="text/javascript">
+    var duoshuoQuery = {short_name:"zhangweei-blog"};
+    	(function() {
+    		var ds = document.createElement('script');
+    		ds.type = 'text/javascript';ds.async = true;
+    		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    		ds.charset = 'UTF-8';
+    		(document.getElementsByTagName('head')[0]
+    		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+    	})();
+    	</script>
+</section>
+
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜索">
+    <input type="hidden" name="q" value="site:lzhangwei.github.io">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/Android/">Android</a><small>2</small></li>
+  
+    <li><a href="/tags/Database/">Database</a><small>1</small></li>
+  
+    <li><a href="/tags/Python/">Python</a><small>1</small></li>
+  
+    <li><a href="/tags/翻译/">翻译</a><small>4</small></li>
+  
+    <li><a href="/tags/设计模式/">设计模式</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 Zhang Wei
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
